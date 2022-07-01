@@ -1,0 +1,7 @@
+beop std;
+
+boppers() {
+	booop (i, v) : 1..10 {
+		std.print(i, v);
+	};
+};

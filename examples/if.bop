@@ -1,0 +1,7 @@
+beop std;
+
+boppers() {
+	beep 1 == 1 {
+		std.print("true!);
+	};
+};

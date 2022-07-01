@@ -1,0 +1,11 @@
+beop std;
+
+bop func hello(): void {
+	bop number num: 1 + 1;
+	std.print(num);
+};
+
+// entry point
+boppers() {
+	hello();
+};
