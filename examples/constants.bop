@@ -3,6 +3,6 @@ beop std;
 boop string value: "hello, world!";
 
 // entry point
-boppers() {
+bop func boppers() {
 	std.print(value);
 };

@@ -1,8 +1,7 @@
 beop std;
 
 // entry point
-boppers() {
+bop func boppers(string a) {
 	bop string str: "hello"; 
-	bop number num: 5.3 + 1;
 	std.print(str);
 };

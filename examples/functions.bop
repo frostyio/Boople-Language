@@ -6,6 +6,6 @@ bop func hello(): void {
 };
 
 // entry point
-boppers() {
+bop func boppers() {
 	hello();
 };

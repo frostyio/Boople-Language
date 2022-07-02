@@ -1,14 +1,13 @@
-#![allow(dead_code)]
 use std::fmt;
 
 const KEYWORDS: [&str; 5] = [
 	"beop", "bop", "boop", "beep", "booop",
 ];
-const TYPES: [&str; 5] = [
-	"func", "char", "number", "void", "string",
+const TYPES: [&str; 6] = [
+	"func", "char", "number", "void", "string", "bool"
 ];
-const PUNCTUATION: [char; 8] = [
-	'{', '}', ';', ':', '=', '(', ')', '.',
+const PUNCTUATION: [char; 9] = [
+	'{', '}', ';', ':', '=', '(', ')', '.', ','
 ];
 const COMPARISON: [&str; 8] = [
 	"==", ">=", "<=", ">", "<", "!=", "&&", "||"
@@ -24,7 +23,8 @@ const NUMBER: [char; 10] = [
 ];
 
 // tokens & pre-processor tokens
-enum Tokens {
+#[derive(Clone)]
+pub enum Tokens {
 	Keyword(String),
 	Number(f64),
 	String(String),
@@ -49,7 +49,7 @@ impl fmt::Debug for Tokens {
 	}
 }
 
-pub struct ChunkResult(Vec<Tokens>);
+pub struct ChunkResult(pub Vec<Tokens>);
 impl ChunkResult {
 	fn new() -> Self {
 		Self(vec![])
@@ -61,7 +61,7 @@ impl ChunkResult {
 }
 impl fmt::Debug for ChunkResult {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "{:?}", self.0)
+		write!(f, "{:#?}", self.0)
 	}
 }
 
@@ -69,7 +69,8 @@ struct Chunk<'a> {
 	bytes: &'a[u8],
 	current_feed: Vec<char>,
 	idx: usize,
-	result: ChunkResult
+	result: ChunkResult,
+	output: Vec<String>
 }
 
 impl<'a> Chunk<'a> {
@@ -79,6 +80,7 @@ impl<'a> Chunk<'a> {
 			current_feed: vec![],
 			idx: 0, 
 			result: ChunkResult::new(),
+			output: vec![],
 		}
 	}
 
@@ -86,21 +88,11 @@ impl<'a> Chunk<'a> {
 	fn has_next(&self) -> bool {
 		self.bytes.len() > self.idx
 	}
-	fn has_prev(&self) -> bool {
-		self.idx - 1 > 0
-	}
 	fn peak_next(&self) -> char {
 		self.bytes[self.idx + 1] as char
 	}
-	fn peak_prev(&self) -> char {
-		self.bytes[self.idx - 1] as char
-	}
 	fn next(&mut self) -> char {
 		self.idx += 1;
-		self.bytes[self.idx] as char
-	}
-	fn prev(&mut self) -> char {
-		self.idx -= 1;
 		self.bytes[self.idx] as char
 	}
 	fn current(&self) -> char {
@@ -144,8 +136,15 @@ impl<'a> Chunk<'a> {
 		self.result.add(token)
 	}
 
+	fn output(&mut self, output: &str) {
+		self.output.push(output.to_string())
+	}
+
 	// returns output or error
 	fn tokenize(&mut self) -> Result<Vec<String>, String> {
+		self.output = vec![];
+		self.output("test");
+
 		while self.has_next() {
 			let char = self.current();
 			if char == '\r' || char == '\n' { // skip all new lines
@@ -155,7 +154,6 @@ impl<'a> Chunk<'a> {
 
 			let feed = self.feed();
 			let trimmed_feed = feed.trim();
-			// println!("{} : '{}'", trimmed_feed, self.current());
 
 			// char based
 
@@ -213,12 +211,10 @@ impl<'a> Chunk<'a> {
 
 				while self.has_next() {
 					let c = self.current();
-					println!("{}", c);
 					if !NUMBER.contains(&c) && c != '.' {
 						let number = {
 							let a = self.feed();
 							let b = a.trim();
-							println!("number: {}", b);
 							b.parse::<f64>().unwrap()
 						};
 						self.add_token(Tokens::Number(number));
@@ -264,12 +260,9 @@ impl<'a> Chunk<'a> {
 			}
 
 			self.consume();
-			// println!("{}", char);
 		}
 
-		println!("{:#?}", self.result.0);
-
-		Ok(vec![])
+		Ok(self.output.clone())
 	}
 }
 

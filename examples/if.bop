@@ -1,7 +1,7 @@
 beop std;
 
-boppers() {
+bop func boppers() {
 	beep 1 == 1 {
-		std.print("true!);
+		std.print("true!");
 	};
 };
